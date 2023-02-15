@@ -1,6 +1,6 @@
-import 'package:bitcoin_ticker/coin_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'coin_data.dart';
 import 'dart:io' show Platform;
 
 class PriceScreen extends StatefulWidget {
@@ -25,29 +25,50 @@ class _PriceScreenState extends State<PriceScreen> {
       value: selectedCurrency,
       items: dropdownItems,
       onChanged: (value) {
-        setState(
-          () {
-            selectedCurrency = value;
-            print(selectedCurrency);
-          },
-        );
+        setState(() {
+          selectedCurrency = value;
+        });
       },
     );
   }
 
   CupertinoPicker iOSPicker() {
-    List<Text> pickerList = [];
-    for (String element in currenciesList) {
-      pickerList.add(Text(element));
+    List<Text> pickerItems = [];
+    for (String currency in currenciesList) {
+      pickerItems.add(Text(currency));
     }
 
     return CupertinoPicker(
+      backgroundColor: Colors.lightBlue,
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
         print(selectedIndex);
       },
-      children: pickerList,
+      children: pickerItems,
     );
+  }
+
+  //12. Create a variable to hold the value and use in our Text Widget. Give the variable a starting value of '?' before the data comes back from the async methods.
+  String bitcoinValueInUSD = '?';
+
+  //11. Create an async method here await the coin data from coin_data.dart
+  void getData() async {
+    try {
+      double data = await CoinData().getCoinData();
+      //13. We can't await in a setState(). So you have to separate it out into two steps.
+      setState(() {
+        bitcoinValueInUSD = data.toStringAsFixed(0);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //14. Call getData() when the screen loads up. We can't call CoinData().getCoinData() directly here because we can't make initState() async.
+    getData();
   }
 
   @override
@@ -71,7 +92,8 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  //15. Update the Text Widget with the data in bitcoinValueInUSD.
+                  '1 BTC = $bitcoinValueInUSD USD',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
